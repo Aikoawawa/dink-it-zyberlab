@@ -19,12 +19,12 @@
         </q-scroll-area>
     </q-card>
 
-    <!-- queue tab -->
+    <!-- queue tab (! Need to make its own template) -->
     <q-card class="q-ma-md" style="width: 500px; height: 650px; margin: 20px">
       <q-toolbar style="height: 68px;">
         <q-toolbar-title>Queue</q-toolbar-title>
       </q-toolbar>
-      
+
       <q-separator />
 
         <PlayerList :players="queue"
@@ -43,10 +43,10 @@
     <DialogHeader title="Add Player" />
     <q-card-section class="q-gutter-md">
       <q-input v-model="newPlayer.name" label="Name" />
-      <q-select 
-        v-model="newPlayer.level" 
-        :options="[1, 2, 3]" 
-        label="Level" 
+      <q-select
+        v-model="newPlayer.level"
+        :options="[1, 2, 3]"
+        label="Level"
       />
     </q-card-section>
     <q-card-actions align="right">
