@@ -1,5 +1,5 @@
 <template>
-  <h1>Hello!</h1>
+  <h1 class="text-h3">Meow</h1>
   <div class="row q-ma-md">
 
     <!-- players tab -->
@@ -12,25 +12,30 @@
       <q-separator />
 
         <q-scroll-area style="height: calc(100% - 68px);">
-          <PlayerList :players="players"
+          <PlayerList :players="playersList"
           @add="addPlayerToQueue"
           @delete="deletePlayerToList"
+          :visible-stats="['level','wins','losses']"
           />
         </q-scroll-area>
     </q-card>
 
     <!-- queue tab (! Need to make its own template) -->
-    <q-card class="q-ma-md" style="width: 500px; height: 650px; margin: 20px">
-      <q-toolbar style="height: 68px;">
+    <q-card style="width: 500px; height: 500px; margin: 20px;">
+      <q-toolbar style="padding-top: 16px; padding-bottom: 16px">
         <q-toolbar-title>Queue</q-toolbar-title>
       </q-toolbar>
 
       <q-separator />
 
-        <PlayerList :players="queue"
-          @add="addPlayerToQueue"
-          @delete="deletePlayerToList"
+      <q-scroll-area style="height: calc(100% - 68px);">
+        <QueueList
+          :players="playerQueue"
+          :visibleStats="['level', 'wins', 'losses', 'queuePosition']"
+          :visibleButtons="[]"
         />
+
+      </q-scroll-area>
     </q-card>
   </div>
 
@@ -60,7 +65,9 @@
 <script setup lang="ts">
 import DialogHeader from '../components/DialogHeader.vue'
 import PlayerList from '../components/PlayerList.vue'
+import QueueList from '../components/QueueList.vue'
 import {reactive, ref} from 'vue'
+import {Player, StatKey } from '../types/Player'
 
 
 const showAddPlayerDialog = ref(false)
@@ -70,51 +77,40 @@ const newPlayer = reactive({
   level: 1 as 1 | 2 | 3,
 })
 
-interface Player {
-  name: String
-  level: 1 | 2 | 3
-  wins: number
-  losses: number
-  queuePosition?: number
-  isQueued?: boolean
-}
+const playersList: Player[] = reactive([])
 
-const players: Player[] = reactive([])
-
-const queue: Player[] = reactive([])
+const playerQueue: Player[] = reactive([])
 
 
 function addPlayerToList() {
-  players.push({
+  playersList.push({
     name: newPlayer.name,
     level: newPlayer.level,
     wins: 0,
     losses: 0,
     isQueued: false,
+    isPlaying: false,
   })
   newPlayer.name = ''
   newPlayer.level = 1
   showAddPlayerDialog.value = false
 }
 
-function addPlayerToQueue(player: Player) {
-  console.log('add', player)
-  if (!player.isQueued) {
-    player.isQueued = true
-    queue.push(player)
-    player.queuePosition = queue.length
-    console.log(queue)
-  } else {
-    console.log("Player Already In queue")
+function deletePlayerToList(player: Player) {
+  console.log('delete', player)
+  const index = playersList.indexOf(player)
+  if (index !== -1) {
+    playersList.splice(index, 1)
   }
 }
 
-function deletePlayerToList(player: Player) {
-  console.log('delete', player)
-  const index = players.indexOf(player)
-  if (index !== -1) {
-    players.splice(index, 1)
-  }
+function addPlayerToQueue(player: Player) {
+  const index = playersList.indexOf(player)
+  const queuePos = playerQueue.length
+
+  player.queuePosition = queuePos
+  playersList.splice(index, 1)
+  playerQueue.push(player)
 }
 
 </script>

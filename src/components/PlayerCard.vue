@@ -2,37 +2,39 @@
   <q-item style="min-height: 80px;">
     <q-item-section>
       <q-item-label class="text-weight-bold" style="font-size: 15px;">{{ player.name }}</q-item-label>
-      <q-item-label caption>lvl {{ player.level }} | Games : {{ player.gamesPlayed }} | W: {{ player.wins }} | L: {{ player.losses }}</q-item-label>
+      <q-item-label caption>
+          <span v-if="visibleStats.includes('level')">lvl {{ player.level }}</span>
+          <span v-if="visibleStats.includes('wins')"> | W: {{ player.wins }}</span>
+          <span v-if="visibleStats.includes('losses')"> | L: {{ player.losses }}</span>
+          <span v-if="visibleStats.includes('queuePosition')"> | Queue: {{ player.queuePosition }}</span>
+          <span v-if="visibleStats.includes('isQueued')"> | Queued: {{ player.isQueued }}</span>
+      </q-item-label>
     </q-item-section>
-    
+
     <q-item-section side>
       <div class="q-gutter-xs">
-        <q-btn label="Delete" @click="emit('delete', player)" />
-        <q-btn label="Add" @click="emit('add', player)"/>
-        
+        <q-btn v-if="visibleButtons?.includes('removeList')" label="Delete" @click="emit('delete', player)" />
+        <q-btn v-if="visibleButtons?.includes('addQueue')" label="Add" @click="emit('add', player)"/>
       </div>
     </q-item-section>
   </q-item>
 </template>
 
 <script setup lang="ts">
+  import {Player, StatKey, ButtonKey} from '../types/Player'
 
-interface Player {
-  name: string;
-  level: 1 | 2 |3
-  wins: number
-  losses: number
-  gamesPlayed: number
-}
+  interface Props {
+    player : Player
+    visibleStats: StatKey[]
+    visibleButtons?: ButtonKey[]
+  }
 
-interface Props {
-  player : Player
-}
+  withDefaults(defineProps<Props>(), {
+    visibleButtons: () => []
+  })
 
-defineProps<Props>()
-
-const emit = defineEmits<{
-  add: [player: Player]
-  delete: [player: Player]
-}>()
+  const emit = defineEmits<{
+    add: [player: Player]
+    delete: [player: Player]
+  }>()
 </script>
