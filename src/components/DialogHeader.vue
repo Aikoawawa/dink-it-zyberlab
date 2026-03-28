@@ -2,6 +2,7 @@
   <q-card-section>
     <q-toolbar>
       <q-toolbar-title>{{ title }}</q-toolbar-title>
+      <q-btn label="Close" @click=""/>
     </q-toolbar>
     <q-separator />
   </q-card-section>
