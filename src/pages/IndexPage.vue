@@ -12,7 +12,9 @@
       <q-separator />
 
         <q-scroll-area style="height: calc(100% - 68px);">
-          <PlayerList :players="playersList"
+          <PlayerList  
+          :players="playersList"
+          :is-in-queue="isInQueue"
           @add="addPlayerToQueue"
           @delete="deletePlayerToList"
           :visible-stats="['level','wins','losses']"
@@ -31,8 +33,10 @@
       <q-scroll-area style="height: calc(100% - 150px);">
         <QueueList
           :players="playerQueue"
+          :is-in-queue="isInQueue"
+          @delete="deletePlayerToQueue"
           :visibleStats="['level', 'wins', 'losses', 'queuePosition']"
-          :visibleButtons="[]"
+          :visibleButtons="['removeList']"
         />
       </q-scroll-area>
 
@@ -125,6 +129,10 @@ const playersList: Player[] = reactive([])
 const playerQueue: Player[] = reactive([])
 const playerMatches: Player[] = reactive([])
 
+const isInQueue = (playerId: number) => {
+  return playerQueue.some(player => player.id === playerId)
+}
+let nextPlayerId = 1
 
 function addPlayerToList() {
   playersList.push({
@@ -134,6 +142,7 @@ function addPlayerToList() {
     losses: 0,
     isQueued: false,
     isPlaying: false,
+    id: nextPlayerId++
   })
   newPlayer.name = ''
   newPlayer.level = 1
@@ -153,8 +162,18 @@ function addPlayerToQueue(player: Player) {
   const queuePos = playerQueue.length
 
   player.queuePosition = queuePos
-  playersList.splice(index, 1)
+  //playersList.splice(index, 1)
   playerQueue.push(player)
+
+
+}
+
+function deletePlayerToQueue(player: Player){
+   console.log('delete', player)
+  const index = playerQueue.indexOf(player)
+  if (index !== -1) {
+    playerQueue.splice(index, 1)
+  }
 }
 
 </script>

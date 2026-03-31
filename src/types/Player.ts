@@ -1,5 +1,6 @@
 export interface Player {
   name: string
+  id: number
   level: 1 | 2 | 3
   wins: number
   losses: number
@@ -7,9 +8,10 @@ export interface Player {
   isQueued?: boolean
   isPlaying?: boolean
 
+
 }
 
-export type StatKey =  'level' | 'wins' | 'losses' | 'queuePosition' | 'isQueued'
+export type StatKey =  'level' | 'wins' | 'losses' | 'queuePosition' | 'isQueued' | 'id'
 export type ButtonKey = 'addQueue' | 'removeList'
 
 
