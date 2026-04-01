@@ -11,6 +11,12 @@ export interface Player {
 
 }
 
+export interface Match {
+  id:number
+  teamA: Player[]
+  teamB: Player[]
+}
+
 export type StatKey =  'level' | 'wins' | 'losses' | 'queuePosition' | 'isQueued' | 'id'
 export type ButtonKey = 'addQueue' | 'removeList'
 
