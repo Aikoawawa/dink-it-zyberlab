@@ -113,19 +113,24 @@
 import DialogHeader from '../components/DialogHeader.vue'
 import PlayerList from '../components/PlayerList.vue'
 import QueueList from '../components/QueueList.vue'
-import {reactive, ref} from 'vue'
-import {Player, StatKey, Match} from '../types/Player'
+import {reactive, ref, computed} from 'vue'
+import {Player, StatKey, Match, QueueFormat, MatchGenerateMode} from '../types/Player'
 import { matCheckBoxOutlineBlank } from '@quasar/extras/material-icons'
+
 
 
 const showAddPlayerDialog = ref(false)
 const showGenerateMatchDialog = ref(false)
 
+const queueFormat = ref<QueueFormat>('doubles')
+const matchGenerateMode = ref<MatchGenerateMode>('manual')
+const teamSize = queueFormat.value === 'singles' ? 1:2
 
 const playersList: Player[] = reactive([])
 const playerQueue: Player[] = reactive([])
 const playerMatches: Match[] = reactive([])
 const selectedPlayers: Player[] = reactive([])
+
 
 let nextPlayerId = 1
 let nextMatchId = 1
@@ -186,6 +191,10 @@ function deletePlayerToQueue(player: Player){
   }
 }
 
+
+
+
+
 //PLAYER MATCH
 const matchBuilder = reactive<{
   isOpen: boolean,
@@ -208,6 +217,13 @@ function startMatch(){
   matchBuilder.isOpen = true
   matchBuilder.teamA.splice(0, matchBuilder.teamA.length)
   matchBuilder.teamB.splice(0, matchBuilder.teamB.length)
+
+  if (matchGenerateMode.value === 'auto'){
+    generateAutoMatch()
+    return
+  }
+
+  startMatch()
 }
 
 function cancelMatch(){
@@ -239,14 +255,16 @@ function removePlayerFromTeam(player: Player, team: 'A'|'B') {
   }
 }
 
-function confirmMatch(){
-  if (matchBuilder.teamA.length !== 2 || matchBuilder.teamB.length !== 2) return
+function confirmMatch(teamAPlayers: Player[], teamBPlayers: Player[]){
+  if (matchBuilder.teamA.length !== teamSize || 
+      matchBuilder.teamB.length !== teamSize) return
 
   playerMatches.push({
     id: nextMatchId++,
+    format: queueFormat.value,
     teamA: [...matchBuilder.teamA],
     teamB: [...matchBuilder.teamB]
-  })
+  })  
 
   const matchedPlayers = [...matchBuilder.teamA, ...matchBuilder.teamB]
 
@@ -259,7 +277,38 @@ function confirmMatch(){
   cancelMatch()
 }
 
+//MANUAL MATCH
+function confirmManualMatch(){
+  if(
+  matchBuilder.teamA.length !== teamLimit.value ||
+  matchBuilder.teamB.length !== teamLimit.value
+  ) return
 
+  confirmMatch(matchBuilder.teamA, matchBuilder.teamB)
+  cancelMatch()
+}
+
+//AUTO MATCH
+function generateAutoMatch(){
+  if (playerQueue.length < requiredPlayers.value) return
+
+  const selectedPlayers = playerQueue.slice(0, requiredPlayers.value)
+
+  const autoTeamA = selectedPlayers.slice(0, teamLimit.value)
+  const autoTeamB = selectedPlayers.slice(teamLimit.value, requiredPlayers.value)
+
+  confirmMatch(autoTeamA, autoTeamB)  
+  
+}
+
+//QUEUE DOUBLE SINGLE
+const requiredPlayers = computed(()=>{
+  return queueFormat.value === 'singles' ? 2:4
+})
+
+const teamLimit = computed(()=>{
+  return queueFormat.value === 'singles' ? 1:2
+})
 
 
 </script>

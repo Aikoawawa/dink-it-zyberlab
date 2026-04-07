@@ -13,11 +13,12 @@ export interface Player {
 
 export interface Match {
   id:number
+  format: QueueFormat
   teamA: Player[]
   teamB: Player[]
 }
 
 export type StatKey =  'level' | 'wins' | 'losses' | 'queuePosition' | 'isQueued' | 'id'
 export type ButtonKey = 'addQueue' | 'removeList'
-
-
+export type QueueFormat ='singles' | 'doubles'
+export type MatchGenerateMode = 'auto' | 'manual'
