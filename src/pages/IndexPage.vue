@@ -142,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { usePickleballStore } from '../stores/pickleball'
 import { storeToRefs } from 'pinia'
 
@@ -153,8 +153,12 @@ const { playersList, playerQueue, playerMatches, requiredPlayers } = storeToRefs
 const showAddPlayerDialog = ref(false)
 const newPlayer = reactive({ name: '', level: 1 })
 
-function addPlayerToList() {
-  store.addPlayerToList(newPlayer.name, newPlayer.level)
+onMounted(() => {
+  store.initializeSync()
+})
+
+async function addPlayerToList() {
+  await store.addPlayerToList(newPlayer.name, newPlayer.level)
   newPlayer.name = ''
   newPlayer.level = 1
   showAddPlayerDialog.value = false
