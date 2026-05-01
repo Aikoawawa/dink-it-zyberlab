@@ -1,136 +1,157 @@
 <template>
-  <h1 class="text-h3">Meow</h1>
+  <h1 class="text-h3">Dink It!</h1>
+
   <div class="row q-ma-md">
 
-    <!-- players tab -->
-    <q-card style="width: 450px; height: 500px; margin: 20px;">
-      <q-toolbar style="padding-top: 16px; padding-bottom: 16px">
+    <!-- PLAYERS -->
+    <q-card style="width: 400px; height: 500px; margin: 10px;">
+      <q-toolbar>
         <q-toolbar-title>Players</q-toolbar-title>
-        <q-btn label="Add Player" :ripple="false" @click="showAddPlayerDialog = true" />
+        <q-btn label="Add" @click="showAddPlayerDialog = true" />
       </q-toolbar>
 
       <q-separator />
 
-        <q-scroll-area style="height: calc(100% - 68px);">
-          <PlayerList  
-          :players="playersList"
-          :is-in-queue="isInQueue"
-          @add="addPlayerToQueue"
-          @delete="deletePlayerToList"
-          :visible-stats="['level','wins','losses']"
-          />
-        </q-scroll-area>
+      <q-scroll-area style="height: calc(100% - 60px);">
+        <q-list>
+          <q-item v-for="p in playersList" :key="p.id">
+            <q-item-section>
+              {{ p.name }} (Lv {{ p.level }}) | W: {{ p.wins }} L: {{ p.losses }}
+            </q-item-section>
+
+            <q-item-section side>
+              <q-btn size="sm" label="Queue" @click="store.addPlayerToQueue(p)" />
+              <q-btn size="sm" color="red" label="X" @click="store.deletePlayerToList(p)" />
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-scroll-area>
     </q-card>
 
-    <!-- queue tab (! Need to make its own template) [finished] -->
-    <q-card style="width: 450px; height: 500px; margin: 20px;">
-      <q-toolbar style="padding-top: 16px; padding-bottom: 16px">
+    <!-- QUEUE -->
+    <q-card style="width: 400px; height: 500px; margin: 10px;">
+      <q-toolbar>
         <q-toolbar-title>Queue</q-toolbar-title>
       </q-toolbar>
 
       <q-separator />
 
-      <q-scroll-area style="height: calc(100% - 150px);">
-        <QueueList
-          :players="playerQueue"
-          :is-in-queue="isInQueue"
-          @delete="deletePlayerToQueue"
-          :visibleStats="['level', 'wins', 'losses', 'queuePosition']"
-          :visibleButtons="['removeList']"
-        />
+      <q-scroll-area style="height: calc(100% - 120px);">
+        <q-list>
+          <q-item v-for="(p, i) in playerQueue" :key="p.id">
+            <q-item-section>
+              #{{ i + 1 }} - {{ p.name }}
+            </q-item-section>
+
+            <q-item-section side>
+              <q-btn size="sm" color="red" label="Remove" @click="store.deletePlayerToQueue(p)" />
+            </q-item-section>
+          </q-item>
+        </q-list>
       </q-scroll-area>
 
       <q-separator />
 
-
-      <!--generate Match button -->
       <q-card-section>
-        <q-toolbar>
-            <q-btn label="Generate Matches"
-              class="absolute-center"
-              style="width: 300px;"
-              @click="showGenerateMatchDialog = true"/>
-        </q-toolbar>
-      </q-card-section>
-
-    </q-card>
-
-
-    <!--Matches tab-->
-    <q-card style="width: 450px; height: 500px; margin: 20px" >
-      <q-toolbar style="padding-top: 16px; padding-bottom: 16px;">
-        <q-toolbar-title>Matches</q-toolbar-title>
-      </q-toolbar>
-    </q-card>
-  </div>
-
-
-
-  <!-- dialog -->
-
-  <q-dialog v-model="showAddPlayerDialog">
-    <q-card style="width: 500px;">
-      <q-card-section>
-        <q-toolbar>
-          <q-toolbar-title>Add Player</q-toolbar-title>
-        </q-toolbar>
-
-        <q-separator/>
-      </q-card-section>
-      <q-card-section class="q-gutter-md">
-        <q-input v-model="newPlayer.name" label="Name" />
-        <q-select
-          v-model="newPlayer.level"
-          :options="[1, 2, 3]"
-          label="Level"
+        <q-btn
+          label="Generate Match"
+          class="full-width"
+          :disable="playerQueue.length < requiredPlayers"
+          @click="store.generateAutoMatch"
         />
       </q-card-section>
+    </q-card>
+
+    <!-- MATCHES -->
+    <q-card style="width: 400px; height: 500px; margin: 10px;">
+      <q-toolbar>
+        <q-toolbar-title>Matches</q-toolbar-title>
+      </q-toolbar>
+
+      <q-separator />
+
+      <q-scroll-area style="height: calc(100% - 60px);">
+        <q-card
+          v-for="match in playerMatches"
+          :key="match.id"
+          class="q-ma-sm q-pa-sm"
+        >
+          <div class="row justify-between">
+            <div>Match #{{ match.id }}</div>
+            <div>{{ match.format }}</div>
+          </div>
+
+          <q-separator class="q-my-xs" />
+
+          <div class="row justify-between">
+
+            <!-- TEAM A -->
+            <div>
+              <div><b>Team A</b></div>
+              <div v-for="p in match.teamA" :key="p.id">{{ p.name }}</div>
+
+              <q-btn
+                v-if="!match.winner"
+                size="sm"
+                label="Win"
+                @click="store.setWinner(match, 'A')"
+              />
+            </div>
+
+            <div class="flex flex-center">VS</div>
+
+            <!-- TEAM B -->
+            <div class="text-right">
+              <div><b>Team B</b></div>
+              <div v-for="p in match.teamB" :key="p.id">{{ p.name }}</div>
+
+              <q-btn
+                v-if="!match.winner"
+                size="sm"
+                label="Win"
+                @click="store.setWinner(match, 'B')"
+              />
+            </div>
+
+          </div>
+
+          <div v-if="match.winner" class="text-center text-green">
+            Winner: Team {{ match.winner }}
+          </div>
+        </q-card>
+      </q-scroll-area>
+    </q-card>
+
+  </div>
+
+  <!-- ADD PLAYER -->
+  <q-dialog v-model="showAddPlayerDialog">
+    <q-card style="width: 300px;">
+      <q-card-section>
+        <q-input v-model="newPlayer.name" label="Name" />
+        <q-select v-model="newPlayer.level" :options="[1,2,3]" label="Level" />
+      </q-card-section>
+
       <q-card-actions align="right">
-        <q-btn label="Cancel" v-close-popup />
+        <q-btn flat label="Cancel" v-close-popup />
         <q-btn label="Add" @click="addPlayerToList" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 
-  <q-dialog v-model="showGenerateMatchDialog">
-    <q-card style="width: 500px;">
-      <q-card-section>
-        <q-toolbar>
-          <q-toolbar-title>Generate Match</q-toolbar-title>
-          <q-btn icon="close" flat rounded @click="showGenerateMatchDialog = false"></q-btn>
-
-        </q-toolbar>
-        <q-separator />
-      </q-card-section>
-      <q-card-section>
-
-      </q-card-section>
-    </q-card>
-  </q-dialog>
 </template>
 
 <script setup lang="ts">
-import DialogHeader from '../components/DialogHeader.vue'
-import PlayerList from '../components/PlayerList.vue'
-import QueueList from '../components/QueueList.vue'
-import {reactive, ref, computed} from 'vue'
-import {Player, StatKey, Match, QueueFormat, MatchGenerateMode} from '../types/Player'
-import { matCheckBoxOutlineBlank } from '@quasar/extras/material-icons'
+import { ref, reactive } from 'vue'
+import { usePickleballStore } from '../stores/pickleball'
+import { storeToRefs } from 'pinia'
 
+const store = usePickleballStore()
+const { playersList, playerQueue, playerMatches, requiredPlayers } = storeToRefs(store)
 
-
+// Local UI state
 const showAddPlayerDialog = ref(false)
-const showGenerateMatchDialog = ref(false)
-
-const queueFormat = ref<QueueFormat>('doubles')
-const matchGenerateMode = ref<MatchGenerateMode>('manual')
-const teamSize = queueFormat.value === 'singles' ? 1:2
-
-const playersList: Player[] = reactive([])
-const playerQueue: Player[] = reactive([])
-const playerMatches: Match[] = reactive([])
-const selectedPlayers: Player[] = reactive([])
-
+const newPlayer = reactive({ name: '', level: 1 })
 
 let nextPlayerId = 1
 let nextMatchId = 1
@@ -143,172 +164,9 @@ const newPlayer = reactive({
 })
 
 function addPlayerToList() {
-  playersList.push({
-    id: nextPlayerId++,
-    name: newPlayer.name,
-    level: newPlayer.level,
-    wins: 0,
-    losses: 0,
-    isQueued: false,
-    isPlaying: false
-    
-  })
+  store.addPlayerToList(newPlayer.name, newPlayer.level)
   newPlayer.name = ''
   newPlayer.level = 1
   showAddPlayerDialog.value = false
 }
-
-function deletePlayerToList(player: Player) {
-  console.log('delete', player)
-  const index = playersList.indexOf(player)
-  if (index !== -1) {
-    playersList.splice(index, 1)
-  }
-}
-
-//PLAYER QUEUE
-const isInQueue = (playerId: number) => {
-  return playerQueue.some(player => player.id === playerId)
-}
-
-
-function addPlayerToQueue(player: Player) {
-  const index = playersList.indexOf(player)
-  const queuePos = playerQueue.length
-
-  player.queuePosition = queuePos
-  //playersList.splice(index, 1)
-  playerQueue.push(player)
-
-
-}
-
-function deletePlayerToQueue(player: Player){
-   console.log('delete', player)
-  const index = playerQueue.indexOf(player)
-  if (index !== -1) {
-    playerQueue.splice(index, 1)
-  }
-}
-
-
-
-
-
-//PLAYER MATCH
-const matchBuilder = reactive<{
-  isOpen: boolean,
-  teamA: Player[],
-  teamB: Player[],
-}>({
-  isOpen: false,
-  teamA:  [],
-  teamB:  [],
-})
-
-const isInMatch = (playerId: number) => {
-  return (
-    matchBuilder.teamA.some(player => player.id === playerId)||
-    matchBuilder.teamB.some(player => player.id === playerId)
-  )
-}
-
-function startMatch(){
-  matchBuilder.isOpen = true
-  matchBuilder.teamA.splice(0, matchBuilder.teamA.length)
-  matchBuilder.teamB.splice(0, matchBuilder.teamB.length)
-
-  if (matchGenerateMode.value === 'auto'){
-    generateAutoMatch()
-    return
-  }
-
-  startMatch()
-}
-
-function cancelMatch(){
-  matchBuilder.teamA.splice(0, matchBuilder.teamA.length)
-  matchBuilder.teamB.splice(0, matchBuilder.teamB.length)
-  matchBuilder.isOpen = false
-}
-
-function addPlayerToTeam(player: Player, team: 'A'|'B'){
-  if (isInMatch(player.id)) return 
-
-  if (team === 'A' && matchBuilder.teamA.length < 2){
-    matchBuilder.teamA.push(player)
-  }
-  if (team === 'B' && matchBuilder.teamB.length < 2){
-    matchBuilder.teamB.push(player)
-  }
-}
-
-function removePlayerFromTeam(player: Player, team: 'A'|'B') {
-  if (team === 'A'){
-    const index = matchBuilder.teamA.findIndex(p => p.id === player.id)
-    if (index !== -1) matchBuilder.teamA.splice(index, 1)
-  }
-
-  if (team === 'B'){
-    const index = matchBuilder.teamB.findIndex(p => p.id === player.id)
-    if (index !== -1) matchBuilder.teamB.splice(index, 1)
-  }
-}
-
-function confirmMatch(teamAPlayers: Player[], teamBPlayers: Player[]){
-  if (matchBuilder.teamA.length !== teamSize || 
-      matchBuilder.teamB.length !== teamSize) return
-
-  playerMatches.push({
-    id: nextMatchId++,
-    format: queueFormat.value,
-    teamA: [...matchBuilder.teamA],
-    teamB: [...matchBuilder.teamB]
-  })  
-
-  const matchedPlayers = [...matchBuilder.teamA, ...matchBuilder.teamB]
-
-  matchedPlayers.forEach(player =>{
-    const index = playerQueue.findIndex(p => p.id === player.id)
-    if (index !== -1){
-      playerQueue.splice(index, 1)
-    }
-  })
-  cancelMatch()
-}
-
-//MANUAL MATCH
-function confirmManualMatch(){
-  if(
-  matchBuilder.teamA.length !== teamLimit.value ||
-  matchBuilder.teamB.length !== teamLimit.value
-  ) return
-
-  confirmMatch(matchBuilder.teamA, matchBuilder.teamB)
-  cancelMatch()
-}
-
-//AUTO MATCH
-function generateAutoMatch(){
-  if (playerQueue.length < requiredPlayers.value) return
-
-  const selectedPlayers = playerQueue.slice(0, requiredPlayers.value)
-
-  const autoTeamA = selectedPlayers.slice(0, teamLimit.value)
-  const autoTeamB = selectedPlayers.slice(teamLimit.value, requiredPlayers.value)
-
-  confirmMatch(autoTeamA, autoTeamB)  
-  
-}
-
-//QUEUE DOUBLE SINGLE
-const requiredPlayers = computed(()=>{
-  return queueFormat.value === 'singles' ? 2:4
-})
-
-const teamLimit = computed(()=>{
-  return queueFormat.value === 'singles' ? 1:2
-})
-
-
 </script>
