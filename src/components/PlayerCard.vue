@@ -8,13 +8,23 @@
           <span v-if="visibleStats.includes('losses')"> | L: {{ player.losses }}</span>
           <span v-if="visibleStats.includes('queuePosition')"> | Queue: {{ player.queuePosition }}</span>
           <span v-if="visibleStats.includes('isQueued')"> | Queued: {{ player.isQueued }}</span>
+          <span v-if="visibleStats.includes('id')"> | ID: {{ player.id }}</span>
       </q-item-label>
     </q-item-section>
 
     <q-item-section side>
       <div class="q-gutter-xs">
-        <q-btn v-if="visibleButtons?.includes('removeList')" label="Delete" @click="emit('delete', player)" />
-        <q-btn v-if="visibleButtons?.includes('addQueue')" label="Add" @click="emit('add', player)"/>
+        <q-btn 
+        v-if="visibleButtons?.includes('removeList')" 
+        label="Delete" 
+        @click="emit('delete', player)" 
+        />
+
+        <q-btn v-if="visibleButtons?.includes('addQueue')" 
+        label="Add" 
+        :disable="isInQueue ? isInQueue(player.id) : false" 
+        @click="emit('add', player)"
+        />
       </div>
     </q-item-section>
   </q-item>
@@ -27,6 +37,7 @@
     player : Player
     visibleStats: StatKey[]
     visibleButtons?: ButtonKey[]
+    isInQueue?:(id:number) => boolean
   }
 
   withDefaults(defineProps<Props>(), {

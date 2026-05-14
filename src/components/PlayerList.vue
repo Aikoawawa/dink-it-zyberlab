@@ -9,6 +9,7 @@
       :player="player"
       :visibleStats
       :visibleButtons="['addQueue', 'removeList']"
+      :is-in-queue="isInQueue"
       @add="emit('add', $event)"
       @delete="emit('delete', $event)"
     />
@@ -22,8 +23,9 @@ import {Player, StatKey} from '../types/Player'
 withDefaults(defineProps<{
   players: Player[]
   visibleStats: StatKey[]
+  isInQueue: (id: number) => boolean
 }>(),{
-  visibleStats: () => ['level', 'wins', 'losses', 'queuePosition', 'isQueued']
+  visibleStats: () => ['level', 'wins', 'losses', 'queuePosition', 'isQueued', 'id']
 })
 
 

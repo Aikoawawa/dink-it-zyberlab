@@ -10,6 +10,7 @@
       :player="player"
       :visibleStats
       :visibleButtons
+       @delete="emit('delete', $event)"
     />
   </q-list>
 
@@ -25,9 +26,15 @@
     visibleStats: StatKey[]
     visibleButtons: ButtonKey[]
   }>(), {
-    visibleStats: () => ['level', 'wins', 'losses', 'queuePosition', 'isQueued'],
+    visibleStats: () => ['level', 'wins', 'losses', 'queuePosition', 'isQueued', 'id'],
     visibleButtons: () => ['addQueue', 'removeList']
+    
   }
   )
+
+  const emit = defineEmits<{
+  
+  delete: [player: Player]
+  }>()
 
 </script>
